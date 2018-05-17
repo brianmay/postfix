@@ -30,8 +30,8 @@ EOF
 rm -r /var/run/saslauthd
 ln -s /var/spool/postfix/var/run/saslauthd /var/run/saslauthd
 
-postconf "smtp_sasl_auth_enable = yes"
-postconf "smtp_sasl_security_options = noanonymous"
+postconf "smtpd_sasl_auth_enable = yes"
+postconf "smtpd_sasl_security_options = noanonymous"
 postconf "smtpd_sasl_local_domain = ${MYHOSTNAME}"
 cp /opt/postfix/master.cf /etc/postfix/master.cf
 adduser postfix sasl
