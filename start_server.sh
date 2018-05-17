@@ -73,5 +73,4 @@ postconf "smtpd_tls_key_file=/etc/postfix/ssl/key.pem"
 /etc/init.d/saslauthd start
 /etc/init.d/postfix start
 
-ls -l /var/spool/postfix/var/run/saslauthd
 tail -F /var/log/mail.log
