@@ -1,4 +1,4 @@
-FROM debian:stretch
+FROM debian:buster
 LABEL maintainer="Brian May <brian@linuxpenguins.xyz>"
 
 RUN apt-get update -q --fix-missing && \
