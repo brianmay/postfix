@@ -6,6 +6,7 @@ RUN apt-get update -q --fix-missing && \
   apt-get -y install postfix sasl2-bin rsyslog && \
   rm -rf /var/lib/apt/lists/*
 
+EXPOSE 25
 EXPOSE 587
 
 COPY . /opt/postfix/
