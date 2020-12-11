@@ -67,5 +67,5 @@ jobs:
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.docker_meta.outputs.tags }}
           labels: ${{ steps.docker_meta.outputs.labels }}
-          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/postfix:latest
+          cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/postfix:master
           cache-to: type=inline
