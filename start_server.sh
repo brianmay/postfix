@@ -49,6 +49,11 @@ postconf "smtputf8_enable = no"
 # This makes sure the message id is set. If this is set to no dkim=fail will happen.
 postconf "always_add_missing_headers = yes"
 
+# submission port restrictions
+postconf "mua_client_restrictions = permit_sasl_authenticated, reject"
+postconf "mua_sender_restrictions = permit_sasl_authenticated, reject"
+postconf "mua_helo_restrictions = permit_mynetworks, reject_non_fqdn_hostname, reject_invalid_hostname, permit"
+
 # TLS config
 postconf "smtpd_use_tls = yes"
 postconf "smtpd_tls_auth_only = yes"
