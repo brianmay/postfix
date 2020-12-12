@@ -37,7 +37,7 @@ jobs:
             {{major}}.{{minor}}
       -
         name: Docker meta
-        id: docker
+        id: meta
         uses: brianmay/docker-meta@main
       -
         name: Set up QEMU
