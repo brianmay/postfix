@@ -45,6 +45,10 @@ jobs:
             {{version}}
             {{major}}.{{minor}}
       -
+        name: Docker meta
+        id: docker
+        uses: brianmay/docker-meta@main
+      -
         name: Set up QEMU
         uses: docker/setup-qemu-action@v1
       -
@@ -69,3 +73,4 @@ jobs:
           labels: ${{ steps.docker_meta.outputs.labels }}
           cache-from: type=registry,ref=${{ secrets.DOCKERHUB_USERNAME }}/postfix:master
           cache-to: type=inline
+          build-args: ${{ steps.meta.outputs.build-args }}
