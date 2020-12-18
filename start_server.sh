@@ -2,15 +2,15 @@
 set -ex
 
 MYHOSTNAME=${MYHOSTNAME?Missing env var MYHOSTNAME}
+MYNETWORKS=${MYNETWORKS?Missing env var NETWORKS}
 USERNAME=${USERNAME?Missing env var USERNAME}
 PASSWORD=${PASSWORD?Missing env var PASSWORD}
-SSL_CERT_PATH=${SSL_CERT_PATH?Missing env var SSL_CERT_PATH}
-SSL_KEY_PATH=${SSL_KEY_PATH?Missing env var SSL_KEY_PATH}
+RELAYHOST=${RELAYHOST?Missing env var RELAYHOST}
 
 # handle sasl
-cat << EOF | saslpasswd2 -pc -u ${MYHOSTNAME} ${USERNAME}
-$PASSWORD
-EOF
+# cat << EOF | saslpasswd2 -pc -u ${MYHOSTNAME} ${USERNAME}
+# $PASSWORD
+# EOF
 
 cat > /etc/default/saslauthd << EOF
 START=yes
@@ -27,6 +27,12 @@ pwcheck_method: saslauthd
 mech_list: PLAIN LOGIN
 EOF
 
+cat > /etc/postfix/sasl_passwd << EOF
+${RELAYHOST} ${USERNAME}:${PASSWORD}
+EOF
+
+postmap /etc/postfix/sasl_passwd
+
 rm -r /var/run/saslauthd
 ln -s /var/spool/postfix/var/run/saslauthd /var/run/saslauthd
 
@@ -41,7 +47,7 @@ postconf "myhostname = ${MYHOSTNAME}"
 postconf "mydestination = "
 
 # Override what you want here. The 10. network is for kubernetes
-postconf "mynetworks = 10.0.0.0/8,127.0.0.0/8,172.17.0.0/16"
+postconf "mynetworks = ${MYNETWORKS}"
 
 # http://www.postfix.org/COMPATIBILITY_README.html#smtputf8_enable
 postconf "smtputf8_enable = no"
@@ -56,6 +62,7 @@ postconf "smtpd_relay_restrictions = permit_mynetworks permit_sasl_authenticated
 postconf "mua_client_restrictions = permit_sasl_authenticated, reject"
 postconf "mua_sender_restrictions = permit_sasl_authenticated, reject"
 postconf "mua_helo_restrictions = permit_mynetworks, reject_non_fqdn_hostname, reject_invalid_hostname, permit"
+postconf "mua_relay_restrictions = permit_sasl_authenticated,reject"
 
 # TLS config
 postconf "smtpd_use_tls = yes"
@@ -67,15 +74,24 @@ postconf "tls_high_cipherlist = ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-G
 postconf 'smtpd_tls_session_cache_database = btree:${data_directory}/smtpd_scache'
 postconf 'smtp_tls_session_cache_database = btree:${data_directory}/smtp_scache'
 
-mkdir -p /etc/postfix/ssl
-cp "$SSL_CERT_PATH" /etc/postfix/ssl/cert.pem
-cp "$SSL_KEY_PATH" /etc/postfix/ssl/key.pem
-chmod 600 /etc/postfix/ssl/cert.pem
-chmod 600 /etc/postfix/ssl/key.pem
+# SMTP RELAY
+postconf "relayhost = ${RELAYHOST}"
+postconf "smtp_sasl_auth_enable = yes"
+postconf "smtp_sasl_security_options = noanonymous"
+postconf "smtp_sasl_password_maps = hash:/etc/postfix/sasl_passwd"
+postconf "smtp_use_tls = yes"
 
-# Postfix configuration
-postconf "smtpd_tls_cert_file=/etc/postfix/ssl/cert.pem"
-postconf "smtpd_tls_key_file=/etc/postfix/ssl/key.pem"
+if test -n "$SSL_CERT_PATH" -a -n "$SSL_KEY_PATH"; then
+    mkdir -p /etc/postfix/ssl
+    cp "$SSL_CERT_PATH" /etc/postfix/ssl/cert.pem
+    cp "$SSL_KEY_PATH" /etc/postfix/ssl/key.pem
+    chmod 600 /etc/postfix/ssl/cert.pem
+    chmod 600 /etc/postfix/ssl/key.pem
+
+    # Postfix configuration
+    postconf "smtpd_tls_cert_file=/etc/postfix/ssl/cert.pem"
+    postconf "smtpd_tls_key_file=/etc/postfix/ssl/key.pem"
+fi
 
 /etc/init.d/rsyslog start
 /etc/init.d/saslauthd start

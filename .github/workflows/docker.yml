@@ -51,8 +51,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-      - name: Get the output args
-        run: echo "The build-args was ${{ steps.meta.outputs.build-args }}"
       -
         name: Build and push
         id: docker_build
